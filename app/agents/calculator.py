@@ -24,7 +24,7 @@ class Calculator(AgentBase):
             return {'result': result}
 
         except Exception as e:
-            return {'error': f'Calculation error: {str(e)}'}
+            raise e
 
     def _calculate(self, operation: str, values: List[Union[int, float]]) -> Union[int, float]:
         if not values:
