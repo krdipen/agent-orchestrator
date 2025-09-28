@@ -6,7 +6,7 @@ A lightweight prototype demonstrating an orchestrator for isolated agents that c
 
 Built with FastAPI (Python 3.11.13)
 
-## How to run
+## How to Run
 
 1. Create venv + install
 <br> python -m venv .venv
@@ -16,15 +16,20 @@ Built with FastAPI (Python 3.11.13)
 2. Start the server
 <br> uvicorn app.main:app --reload --port 8000
 
-3. Run demo script (will POST a sample DAG and poll)
-<br> python demo.py
-
 ## Docker Setup
 
+1. Build the image
 <br> build -t agent-orchestrator:latest .
+
+2. Run the container
 <br> docker run -p 8000:8000 agent-orchestrator:latest
 
-## Design decisions & trade-offs
+## Test
+
+1. Run demo script (will POST a sample DAG and poll)
+<br> python demo.py
+
+## Design Decisions & Trade-offs
 
 1. In-memory storage due to 24h time constraint (not durable across restarts).
 2. Single-process asyncio-based orchestrator (no distributed queue).
