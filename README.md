@@ -9,20 +9,20 @@ Built with FastAPI (Python 3.11.13)
 ## How to run
 
 1. Create venv + install
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+<br> python -m venv .venv
+<br> source .venv/bin/activate
+<br> pip install -r requirements.txt
 
 2. Start the server
-uvicorn app.main:app --reload --port 8000
+<br> uvicorn app.main:app --reload --port 8000
 
 3. Run demo script (will POST a sample DAG and poll)
-python demo.py
+<br> python demo.py
 
 ## Docker Setup
 
-build -t agent-orchestrator:latest .
-docker run -p 8000:8000 agent-orchestrator:latest
+<br> build -t agent-orchestrator:latest .
+<br> docker run -p 8000:8000 agent-orchestrator:latest
 
 ## Design decisions & trade-offs
 
