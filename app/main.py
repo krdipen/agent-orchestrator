@@ -1,19 +1,53 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from .orchestrator import Orchestrator
 from .storage import InMemoryStorage
 from .agents import data_fetcher, calculator
+from .agent_base import AgentBase
+import importlib.util
 import asyncio
 import uuid
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 storage = InMemoryStorage()
 
 agents = {
     "data_fetcher": data_fetcher.agent,
     "calculator": calculator.agent,
 }
+
+@app.get("/agents/list")
+async def list_agents():
+    return {name: type(agent).__name__ for name, agent in agents.items()}
+
+@app.post("/agents/register")
+async def register_agent(
+    name: str,
+    python_file: UploadFile,
+):
+    try:
+        code = await python_file.read()
+        code = code.decode('utf-8')
+        module_name = f"dynamic_agent_{name.lower()}"
+        spec = importlib.util.spec_from_loader(module_name, loader=None)
+        module = importlib.util.module_from_spec(spec)
+        exec(code, module.__dict__)
+        if not hasattr(module, 'agent') or not isinstance(module.agent, AgentBase):
+            raise ValueError("Code must define an 'agent' variable that is an instance of AgentBase")
+        agents[name] = module.agent
+        return {"status": "success", "message": f"Agent '{name}' registered successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 class Node(BaseModel):
     id: str

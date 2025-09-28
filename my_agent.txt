@@ -1,0 +1,8 @@
+from app.agent_base import AgentBase
+
+class MyAgent(AgentBase):
+    async def run(self, inputs):
+        print("running dynamically loaded agent")
+        return {"message": "results from dynamically loaded agent"}
+
+agent = MyAgent()
