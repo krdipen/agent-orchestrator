@@ -49,6 +49,8 @@ class RunStatus(BaseModel):
     status: str
     results: Dict[str, Any] = {}
     error: Optional[str] = None
+    created_at: Optional[float] = None
+    updated_at: Optional[float] = None
 
 
 async def execute_workflow(run_id: str, nodes: List[Node], edges: List[Edge], initial_inputs: Dict[str, Any]):
@@ -115,6 +117,10 @@ async def create_run(run_request: RunRequest):
         'message': 'Workflow execution started'
     }
 
+@app.get("/runs", response_model=Dict[str, Dict[str, Any]])
+async def list_runs():
+    return await storage.list_runs()
+
 @app.get("/runs/{run_id}", response_model=RunStatus)
 async def get_run(run_id: str):
     run = await storage.get_run(run_id)
@@ -124,5 +130,7 @@ async def get_run(run_id: str):
     return RunStatus(
         run_id=run_id,
         status=run.get('status', 'UNKNOWN'),
-        results=run.get('nodes', {})
+        results=run.get('nodes', {}),
+        created_at=run.get('created_at'),
+        updated_at=run.get('updated_at')
     )

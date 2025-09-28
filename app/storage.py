@@ -1,5 +1,6 @@
 from typing import Dict, Any
 import asyncio
+import time
 
 class InMemoryStorage:
     def __init__(self):
@@ -7,12 +8,15 @@ class InMemoryStorage:
         self._lock = asyncio.Lock()
 
     async def create_run(self, run_id: str, spec: Dict[str, Any]):
+        now = time.time()
         async with self._lock:
             self._runs[run_id] = {
                 'spec': spec,
-                'status': 'RUNNING',
+                'status': 'PENDING',
                 'nodes': {},
-                'artifacts': {}
+                'artifacts': {},
+                'created_at': now,
+                'updated_at': now
             }
 
     async def set_node_result(self, run_id: str, node_id: str, result: Dict[str, Any]):
@@ -31,6 +35,7 @@ class InMemoryStorage:
             run = self._runs.get(run_id)
             if run:
                 run['status'] = status
+                run['updated_at'] = time.time()
 
     async def add_artifact(self, run_id: str, name: str, data: bytes):
         async with self._lock:
@@ -47,3 +52,16 @@ class InMemoryStorage:
                 return False
             run['status'] = 'CANCELLED'
             return True
+            
+    async def list_runs(self) -> Dict[str, Dict[str, Any]]:
+        async with self._lock:
+            return {
+                run_id: {
+                    'status': run.get('status', 'UNKNOWN'),
+                    'created_at': run.get('created_at'),
+                    'updated_at': run.get('updated_at'),
+                    'node_count': len(run.get('nodes', {})),
+                    'nodes': list(run.get('nodes', {}).keys())
+                }
+                for run_id, run in self._runs.items()
+            }
