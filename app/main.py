@@ -10,20 +10,11 @@ import uuid
 app = FastAPI()
 storage = InMemoryStorage()
 
-orchestrator = Orchestrator(
-    max_concurrent=3,
-    max_retries=2,
-    timeout=30
-)
-
 agents = {
     "data_fetcher": data_fetcher.agent,
     "calculator": calculator.agent,
     "chart_generator": chart_generator.agent
 }
-
-for agent_name, agent in agents.items():
-    orchestrator.register_agent(agent_name, agent)
 
 class Node(BaseModel):
     id: str
@@ -60,6 +51,13 @@ async def execute_workflow(run_id: str, nodes: List[Node], edges: List[Edge], in
                 'initial_inputs': initial_inputs
             }
         )
+        orchestrator = Orchestrator(
+            max_concurrent=3,
+            max_retries=2,
+            timeout=30
+        )
+        for agent_name, agent in agents.items():
+            orchestrator.register_agent(agent_name, agent)
         results = await orchestrator.run(
             nodes=nodes_dict,
             edges=edges_dict,
