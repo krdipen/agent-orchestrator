@@ -19,7 +19,7 @@ Built with FastAPI (Python 3.11.13)
 ## Docker Setup
 
 1. Build the image
-<br> build -t agent-orchestrator:latest .
+<br> docker build -t agent-orchestrator:latest .
 
 2. Run the container
 <br> docker run -p 8000:8000 agent-orchestrator:latest
@@ -27,7 +27,7 @@ Built with FastAPI (Python 3.11.13)
 ## Test
 
 1. Run demo script (will POST a sample DAG and poll)
-<br> python demo.py
+<br> bash demo.sh
 
 ## Design Decisions & Trade-offs
 
