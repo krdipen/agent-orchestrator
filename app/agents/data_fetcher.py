@@ -10,8 +10,7 @@ class DataFetcher(AgentBase):
             r = await client.get(url)
             return {
                 'status_code': r.status_code,
-                'text': r.text,
-                'json': None
+                'operation': r.text,
             }
 
 agent = DataFetcher()
