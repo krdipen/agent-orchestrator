@@ -52,16 +52,7 @@ class InMemoryStorage:
                 return False
             run['status'] = 'CANCELLED'
             return True
-            
+
     async def list_runs(self) -> Dict[str, Dict[str, Any]]:
         async with self._lock:
-            return {
-                run_id: {
-                    'status': run.get('status', 'UNKNOWN'),
-                    'created_at': run.get('created_at'),
-                    'updated_at': run.get('updated_at'),
-                    'node_count': len(run.get('nodes', {})),
-                    'nodes': list(run.get('nodes', {}).keys())
-                }
-                for run_id, run in self._runs.items()
-            }
+            return self._runs
