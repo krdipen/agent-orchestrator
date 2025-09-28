@@ -117,42 +117,49 @@ class Orchestrator:
 
     async def _execute_node(self, node_id: str, node_def: Dict, initial_inputs: Dict, results: Dict) -> Any:
         execution = self.executions[node_id]
-        execution.status = NodeStatus.RUNNING
+        last_error = None
         
-        try:
-            agent_type = node_def.get('agent')
-            if not agent_type:
-                raise ValueError(f"Node {node_id} is missing 'agent' field")
-                
-            if agent_type not in self.agents:
-                raise ValueError(f"Agent type '{agent_type}' not found in registered agents. Available agents: {list(self.agents.keys())}")
-            
-            input_data = initial_inputs.copy()
-            for dep_id in execution.depends_on:
-                if dep_id in results:
-                    if isinstance(results[dep_id], dict) and 'result' in results[dep_id]:
-                        input_data[dep_id] = results[dep_id]['result']
-                    else:
-                        input_data[dep_id] = results[dep_id]
+        for attempt in range(self.max_retries + 1):
+            try:
+                execution.status = NodeStatus.RUNNING
+                execution.retries = attempt
 
-            params = node_def.get('params', {})
-            input_data.update(params)
-            print(f"Input data: {input_data}")
-            
-            agent = self.agents[agent_type]
-            result = await agent.run(input_data, timeout=self.timeout)
-            execution.status = NodeStatus.COMPLETED
-            execution.result = result
-            return {'result': result, 'node_id': node_id, 'agent_type': agent_type}
-            
-        except asyncio.CancelledError:
-            execution.status = NodeStatus.FAILED
-            execution.error = "Node execution was cancelled"
-            raise
+                agent_type = node_def.get('agent')
+                if not agent_type:
+                    raise ValueError(f"Node {node_id} is missing 'agent' field")
 
-        except Exception as e:
-            error_msg = f"Error in node {node_id}: {str(e)}"
-            print(error_msg)
-            execution.status = NodeStatus.FAILED
-            execution.error = str(e)
-            raise Exception(error_msg) from e
+                if agent_type not in self.agents:
+                    raise ValueError(f"Agent type '{agent_type}' not found in registered agents. Available agents: {list(self.agents.keys())}")
+
+                input_data = initial_inputs.copy()
+                for dep_id in execution.depends_on:
+                    if dep_id in results:
+                        if isinstance(results[dep_id], dict) and 'result' in results[dep_id]:
+                            input_data[dep_id] = results[dep_id]['result']
+                        else:
+                            input_data[dep_id] = results[dep_id]
+
+                params = node_def.get('params', {})
+                input_data.update(params)
+                print(f"Input data: {input_data}")
+
+                agent = self.agents[agent_type]
+                result = await agent.run(input_data, timeout=self.timeout)
+                execution.status = NodeStatus.COMPLETED
+                execution.result = result
+                return {'result': result, 'node_id': node_id, 'agent_type': agent_type}
+
+            except asyncio.CancelledError:
+                execution.status = NodeStatus.FAILED
+                execution.error = "Node execution was cancelled"
+                raise
+
+            except Exception as e:
+                last_error = e
+                if attempt < self.max_retries:
+                    await asyncio.sleep(1 * (attempt + 1))
+                    continue
+                error_msg = f"Node {node_id} failed after {self.max_retries} retries: {str(e)}"
+                execution.status = NodeStatus.FAILED
+                execution.error = error_msg
+                raise Exception(error_msg) from last_error

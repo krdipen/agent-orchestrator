@@ -4,7 +4,7 @@ from typing import Dict, Any, List, Union
 class Calculator(AgentBase):
     async def run(self, inputs):
         try:
-            operation = inputs.get('operation')
+            operation = inputs.get(inputs.get('parent')).get('operation')
             values = inputs.get('values', [])
 
             if not operation or not isinstance(values, list):
