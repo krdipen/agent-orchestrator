@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from .orchestrator import Orchestrator
 from .storage import InMemoryStorage
-from .agents import data_fetcher, calculator, chart_generator
+from .agents import data_fetcher, calculator
 import asyncio
 import uuid
 
@@ -13,7 +13,6 @@ storage = InMemoryStorage()
 agents = {
     "data_fetcher": data_fetcher.agent,
     "calculator": calculator.agent,
-    "chart_generator": chart_generator.agent
 }
 
 class Node(BaseModel):

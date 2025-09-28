@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from typing import Dict, Any, List, Optional, Set
 from dataclasses import dataclass
 from enum import Enum
@@ -26,38 +27,17 @@ class AgentWrapper:
 
     async def run(self, input_data: Dict[str, Any], timeout: Optional[float] = 30.0) -> Any:
         try:
-            ctx = {
-                'run_id': getattr(self, 'run_id', ''),
-                'node_id': self.name,
-                'storage': getattr(self, 'storage', None)
-            }
-            
-            # Extract conf and inputs from input_data
-            # For backward compatibility, we'll use the entire input_data as conf
-            # and an empty dict for inputs, since the Calculator agent expects specific parameters
-            # in the conf dictionary (operation and values)
-            conf = input_data
-            inputs = {}
-            
-            print(f"Calling agent.run with conf={conf}, inputs={inputs}, ctx={ctx}")
-            
-            # Call the agent's run method with the correct signature
             result = await asyncio.wait_for(
-                self.agent.run(conf=conf, inputs=inputs, ctx=ctx),
+                self.agent.run(inputs=input_data),
                 timeout=timeout
             )
-            
-            print(f"Agent {self.name} returned: {result}")
             return result
-            
+
         except asyncio.TimeoutError:
             error_msg = f"Agent {self.name} timed out after {timeout} seconds"
-            print(error_msg)
             raise Exception(error_msg)
         except Exception as e:
             error_msg = f"Agent {self.name} failed: {str(e)}"
-            print(error_msg)
-            import traceback
             traceback.print_exc()
             raise Exception(error_msg)
 

@@ -2,14 +2,14 @@ from ..agent_base import AgentBase
 from typing import Dict, Any, List, Union
 
 class Calculator(AgentBase):
-    async def run(self, conf: Dict[str, Any], inputs: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
+    async def run(self, inputs):
         try:
-            operation = conf.get('operation')
-            values = conf.get('values', [])
-            
+            operation = inputs.get('operation')
+            values = inputs.get('values', [])
+
             if not operation or not isinstance(values, list):
                 return {'error': 'Missing or invalid operation/values'}
-            
+
             resolved_values = []
             for v in values:
                 if isinstance(v, str) and v in inputs:
@@ -19,17 +19,17 @@ class Calculator(AgentBase):
                         resolved_values.append(inputs[v])
                 else:
                     resolved_values.append(v)
-            
+
             result = self._calculate(operation, resolved_values)
             return {'result': result}
-            
+
         except Exception as e:
             return {'error': f'Calculation error: {str(e)}'}
-    
+
     def _calculate(self, operation: str, values: List[Union[int, float]]) -> Union[int, float]:
         if not values:
             return 0
-            
+
         if operation == 'add':
             return sum(values)
         elif operation == 'multiply':
