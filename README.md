@@ -28,7 +28,6 @@ bash demo_script.sh
 
 ## API
 
-1. POST /runs — submit DAG (see example in repo)
-2. GET /runs/{run_id} — get status & results
-3. POST /runs/{run_id}/cancel — cancel
-4. GET /agents — list available agents
+1. POST /runs — submit task
+2. GET /runs/{run_id} — get status & results for the task id
+3. POST /runs — get details of all tasks
