@@ -17,7 +17,12 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 
 3. Run demo script (will POST a sample DAG and poll)
-bash demo_script.sh
+python demo.py
+
+## Docker Setup
+
+build -t agent-orchestrator:latest .
+docker run -p 8000:8000 agent-orchestrator:latest
 
 ## Design decisions & trade-offs
 
